@@ -1,0 +1,67 @@
+# ─── Python / Django ───────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+.venv/
+venv/
+env/
+*.sqlite3
+db.sqlite3
+
+# ─── Node.js / Next.js ────────────────────────────────────
+node_modules/
+.next/
+out/
+dist/
+.cache/
+*.tsbuildinfo
+next-env.d.ts
+
+# ─── Environment & Secrets ───────────────────────────────
+.env
+.env.local
+.env.development.local
+.env.production.local
+.env.*.local
+*.pem
+
+# ─── IDE / Editor ─────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-workspace
+
+# ─── OS ──────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# ─── Docker ──────────────────────────────────────────────
+docker-data/
+*.log
+
+# ─── Media / Uploads (local dev fallback) ────────────────
+media/
+staticfiles/
+
+# ─── Logs ────────────────────────────────────────────────
+logs/
+*.log
+
+# ─── Project-specific ───────────────────────────────────
+.claude/
+.codegraph/
+
+docs/superpowers/
