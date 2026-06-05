@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends libpq-dev curl 
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 COPY pyproject.toml uv.lock .python-version ./
-RUN uv sync --frozen --no-dev
+RUN uv sync --frozen
 
 COPY . .
 ENV PATH="/app/.venv/bin:$PATH"
