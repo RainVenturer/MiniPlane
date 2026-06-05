@@ -120,3 +120,10 @@ class ProjectViewSet(viewsets.ModelViewSet):
         if not created:
             return Response({"detail": "该用户已是项目成员"}, status=status.HTTP_409_CONFLICT)
         return Response(ProjectMemberSerializer(member).data, status=status.HTTP_201_CREATED)
+
+    @action(methods=["delete"], detail=True, url_path="members/(?P<uid>[^/.]+)")
+    def remove_member(self, request, pk=None, uid=None):
+        project = self.get_object()
+        member = get_object_or_404(ProjectMember, project=project, user_id=uid)
+        member.delete()
+        return Response({"detail": "成员已移除"})

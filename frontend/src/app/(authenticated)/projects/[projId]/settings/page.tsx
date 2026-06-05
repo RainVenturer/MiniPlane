@@ -1,17 +1,31 @@
 "use client";
+import { useState } from "react";
 import { useParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
 import Spinner from "@/components/ui/Spinner";
-import type { ProjectStats, Activity } from "@/types";
 import Avatar from "@/components/ui/Avatar";
 import { timeAgo } from "@/lib/utils";
+import type { ProjectStats, Activity, ProjectMember } from "@/types";
+import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 
 const PRIORITY_COLORS: Record<string, string> = { urgent: "#ef4444", high: "#f97316", medium: "#f59e0b", low: "#10b981", none: "#71718a" };
 
 export default function SettingsPage() {
   const { projId } = useParams<{ projId: string }>();
+  const queryClient = useQueryClient();
+  const [memberEmail, setMemberEmail] = useState("");
+
+  const { data: members } = useQuery<ProjectMember[]>({
+    queryKey: ["project-members", projId],
+    queryFn: async () => {
+      const { data } = await api.get(`/projects/${projId}/members/`);
+      return (data as { results?: ProjectMember[] }).results || (Array.isArray(data) ? data as ProjectMember[] : []);
+    },
+  });
 
   const { data: activities } = useQuery<Activity[]>({
     queryKey: ["project-activities", projId],
@@ -27,6 +41,16 @@ export default function SettingsPage() {
       const { data } = await api.get<ProjectStats>(`/projects/${projId}/statistics/`);
       return data;
     },
+  });
+
+  const addMember = useMutation({
+    mutationFn: () => api.post(`/projects/${projId}/members/`, { email: memberEmail, role: "member" }),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["project-members", projId] }); setMemberEmail(""); toast.success("成员已添加"); },
+  });
+
+  const removeMember = useMutation({
+    mutationFn: (uid: string) => api.delete(`/projects/${projId}/members/${uid}/`),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["project-members", projId] }); },
   });
 
   if (isLoading) return <div className="flex justify-center py-20"><Spinner /></div>;
@@ -49,6 +73,31 @@ export default function SettingsPage() {
             <p className={`text-2xl font-bold font-mono ${c.color}`}>{c.value}</p>
           </div>
         ))}
+      </div>
+
+      {/* Members */}
+      <div className="mb-8 p-5 bg-surface-1 border border-border rounded-2xl">
+        <h3 className="text-sm font-semibold mb-4">项目成员 ({members?.length || 0})</h3>
+        <div className="space-y-2 mb-4">
+          {members?.map((m: ProjectMember) => (
+            <div key={m.id} className="flex items-center justify-between px-3 py-2 bg-surface-2 rounded-xl text-sm">
+              <div className="flex items-center gap-2">
+                <Avatar name={m.user_name} size="sm" />
+                <span>{m.user_name}</span>
+                <span className="text-xs text-muted">{m.user_email}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted">{m.role === "admin" ? "管理员" : m.role === "viewer" ? "只读" : "成员"}</span>
+                <button onClick={() => { if (confirm("移除成员？")) removeMember.mutate(m.user); }}
+                  className="text-muted hover:text-danger text-xs">移除</button>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <Input placeholder="输入邮箱添加成员" value={memberEmail} onChange={(e) => setMemberEmail(e.target.value)} />
+          <Button size="sm" onClick={() => addMember.mutate()} disabled={!memberEmail}>添加</Button>
+        </div>
       </div>
 
       {/* Charts */}

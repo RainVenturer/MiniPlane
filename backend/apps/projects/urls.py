@@ -11,4 +11,7 @@ urlpatterns = [
     path("<uuid:pk>/members/", ProjectViewSet.as_view({
         "get": "members", "post": "members",
     }), name="project-members"),
+    path("<uuid:pk>/members/<uuid:uid>/", ProjectViewSet.as_view({
+        "delete": "remove_member",
+    }), name="project-member-detail"),
 ]
