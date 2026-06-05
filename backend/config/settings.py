@@ -83,30 +83,19 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
-# ── Database ─────────────────────────────────────────────────────────
-_db_engine = os.getenv("DB_ENGINE", "postgresql")
-if _db_engine == "sqlite" or os.getenv("USE_SQLITE", "False").lower() in ("true", "1"):
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
+# ── Database (PostgreSQL, Docker 提供) ────────────────────────────────
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("DB_NAME", "miniplane"),
+        "USER": os.getenv("DB_USER", "miniplane"),
+        "PASSWORD": os.getenv("DB_PASSWORD", "miniplane"),
+        "HOST": os.getenv("DB_HOST", "localhost"),
+        "PORT": os.getenv("DB_PORT", "5432"),
+        "CONN_MAX_AGE": 60,
+        "OPTIONS": {"connect_timeout": 5},
     }
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.getenv("DB_NAME", "miniplane"),
-            "USER": os.getenv("DB_USER", "miniplane"),
-            "PASSWORD": os.getenv("DB_PASSWORD", "miniplane"),
-            "HOST": os.getenv("DB_HOST", "localhost"),
-            "PORT": os.getenv("DB_PORT", "5432"),
-            "CONN_MAX_AGE": 60,
-            "OPTIONS": {
-                "connect_timeout": 5,
-            },
-        }
-    }
+}
 
 # ── Redis ────────────────────────────────────────────────────────────
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")

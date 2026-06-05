@@ -62,9 +62,11 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         project_id = self.kwargs.get("proj_id")
-        qs = Task.objects.filter(project_id=project_id)
+        qs = Task.objects.all()
+        if project_id:
+            qs = qs.filter(project_id=project_id)
         # 看板/列表视图默认只看顶层任务
-        if self.action == "list":
+        if self.action == "list" and project_id:
             view_type = self.request.query_params.get("view", "list")
             if view_type in ("kanban", "list") and "parent__isnull" not in self.request.query_params:
                 qs = qs.filter(parent__isnull=True)
