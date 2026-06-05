@@ -1,0 +1,126 @@
+# ── MiniPlane 完整服务编排 ──────────────────────────────────────
+version: "3.9"
+
+services:
+  # ── 数据库 ──────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: miniplane
+      POSTGRES_USER: miniplane
+      POSTGRES_PASSWORD: miniplane
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U miniplane"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis ───────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # ── MinIO 对象存储 ──────────────────────────────────────────
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"   # API
+      - "9001:9001"   # Console
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── 后端 API ────────────────────────────────────────────────
+  backend:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    environment:
+      DEBUG: "false"
+      SECRET_KEY: change-this-in-production
+      DB_NAME: miniplane
+      DB_USER: miniplane
+      DB_PASSWORD: miniplane
+      DB_HOST: db
+      DB_PORT: "5432"
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_BUCKET: miniplane-attachments
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+
+  # ── Celery Worker ───────────────────────────────────────────
+  celery-worker:
+    build: .
+    restart: unless-stopped
+    command: celery -A config.celery worker -l info
+    depends_on:
+      - redis
+      - db
+    environment:
+      DEBUG: "false"
+      DB_NAME: miniplane
+      DB_USER: miniplane
+      DB_PASSWORD: miniplane
+      DB_HOST: db
+      DB_PORT: "5432"
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+    volumes:
+      - .:/app
+
+  # ── Celery Beat ─────────────────────────────────────────────
+  celery-beat:
+    build: .
+    restart: unless-stopped
+    command: celery -A config.celery beat -l info
+    depends_on:
+      - redis
+      - db
+    environment:
+      DEBUG: "false"
+      DB_NAME: miniplane
+      DB_USER: miniplane
+      DB_PASSWORD: miniplane
+      DB_HOST: db
+      DB_PORT: "5432"
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+    volumes:
+      - .:/app
+
+volumes:
+  postgres_data:
+  minio_data:
