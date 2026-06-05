@@ -15,6 +15,7 @@ class TaskListSerializer(serializers.ModelSerializer):
     """任务列表（轻量）"""
     status_name = serializers.CharField(source="status.name", read_only=True)
     status_color = serializers.CharField(source="status.color", read_only=True)
+    status_type = serializers.CharField(source="status.type", read_only=True)
     assignee_name = serializers.CharField(source="assignee.name", read_only=True)
     priority_display = serializers.CharField(source="get_priority_display", read_only=True)
 
@@ -22,7 +23,9 @@ class TaskListSerializer(serializers.ModelSerializer):
         model = Task
         fields = [
             "id", "title", "priority", "priority_display", "status",
-            "status_name", "status_color", "assignee", "assignee_name",
+            "status_name", "status_color", "status_type",
+            "assignee", "assignee_name",
+            "iteration", "module",
             "due_date", "order", "created_at",
         ]
         read_only_fields = ["id", "created_at"]

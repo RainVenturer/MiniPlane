@@ -63,5 +63,6 @@ logs/
 # ─── Project-specific ───────────────────────────────────
 .claude/
 .codegraph/
+.playwright-mcp/
 
 docs/superpowers/
