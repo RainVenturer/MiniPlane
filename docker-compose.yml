@@ -83,8 +83,6 @@ services:
       ALLOWED_HOSTS: "*"
     ports:
       - "${BACKEND_PORT:-8000}:8000"
-    volumes:
-      - ./backend:/app
 
   # ── Celery Worker ────────────────────────────────────────────
   celery-worker:
@@ -105,8 +103,6 @@ services:
       DB_PORT: "5432"
       REDIS_URL: redis://redis:6379/0
       CELERY_BROKER_URL: redis://redis:6379/1
-    volumes:
-      - ./backend:/app
 
   # ── 前端 (Next.js) ────────────────────────────────────────────
   frontend:
