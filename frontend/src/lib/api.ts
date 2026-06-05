@@ -33,7 +33,14 @@ const processQueue = (error: unknown, token: string | null) => {
 };
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // 自动解包 APIRenderer 的 {success, data} 格式
+    const body = response.data;
+    if (body && typeof body === "object" && "success" in body && "data" in body) {
+      response.data = body.data;
+    }
+    return response;
+  },
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
     if (error.response?.status === 401 && !originalRequest._retry) {
