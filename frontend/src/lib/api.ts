@@ -56,7 +56,7 @@ api.interceptors.response.use(
         return Promise.reject(error);
       }
       try {
-        const { data } = await axios.post(`${API_BASE}/auth/refresh/`, { refresh });
+        const { data } = await axios.post(`${API_BASE}/token/refresh/`, { refresh });
         localStorage.setItem("access_token", data.access);
         processQueue(null, data.access);
         if (originalRequest.headers) {

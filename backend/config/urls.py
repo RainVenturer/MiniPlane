@@ -3,6 +3,7 @@ MiniPlane 根 URL 路由
 """
 from django.contrib import admin
 from django.urls import path, include
+from rest_framework_simplejwt.views import TokenRefreshView
 from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularSwaggerView,
@@ -26,6 +27,7 @@ urlpatterns = [
 
     # 认证
     path("api/auth/", include("apps.accounts.urls")),
+    path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 
     # 工作空间
     path("api/workspaces/", include("apps.workspaces.urls")),
