@@ -20,22 +20,23 @@
 ```
 SoftwareArchitecture/
 ├── README.md                 ← 你在这里
+├── docker-compose.yml        ← 全栈一键部署
+├── .env                      ← Docker 环境变量
 ├── docs/                     ← T1-T4 课程文档
 ├── backend/                  ← Django 后端
 │   ├── pyproject.toml
 │   ├── manage.py
 │   ├── Dockerfile
-│   ├── docker-compose.yml
 │   ├── .env.example
 │   ├── config/               ← Django 配置
 │   └── apps/                 ← 11 个 Django App
 └── frontend/                 ← Next.js 前端
     ├── package.json
     ├── next.config.ts
+    ├── Dockerfile
     └── src/
         ├── app/              ← 13 条路由
         ├── components/       ← UI 组件
-        ├── hooks/            ← 自定义 Hooks
         ├── lib/              ← API 客户端/工具
         ├── stores/           ← Zustand 状态
         └── types/            ← TypeScript 类型
@@ -43,7 +44,55 @@ SoftwareArchitecture/
 
 ---
 
-## 快速开始
+## 方式一：Docker 全栈一键部署（推荐）
+
+### 前置要求
+
+| 工具 | 版本 | 检查命令 |
+|------|------|----------|
+| Docker Desktop | 最新 | `docker --version` |
+
+### 启动
+
+```bash
+# 在项目根目录
+docker compose up -d
+```
+
+首次启动会自动构建后端和前端镜像（约 3-5 分钟）。
+
+| 服务 | 端口 | 说明 |
+|------|------|------|
+| frontend | 5173 | Next.js 前端 |
+| backend | 8000 | Django + Daphne (HTTP + WebSocket) |
+| db | 5432 | PostgreSQL 16 |
+| redis | 6379 | 缓存 + 队列 + Channel Layers |
+| minio | 9000 / 9001 | 对象存储 (API / Console) |
+| celery-worker | — | 异步任务 |
+
+### 初始化数据库
+
+```bash
+docker compose exec backend uv run python manage.py migrate
+docker compose exec backend uv run python manage.py createsuperuser
+```
+
+### 访问
+
+- 前端：http://localhost:5173
+- API 文档：http://localhost:8000/api/docs/
+- MinIO Console：http://localhost:9001 (minioadmin / minioadmin)
+
+### 停止
+
+```bash
+docker compose down
+# 如需清除数据卷: docker compose down -v
+```
+
+---
+
+## 方式二：本地开发（中间件用 Docker，前后端本地跑）
 
 ### 前置要求
 
@@ -55,43 +104,24 @@ SoftwareArchitecture/
 | Node.js | ≥ 18 | `node --version` |
 | pnpm | 最新 | `pnpm --version` |
 
-### 1. 启动中间件（Docker）
+### 1. 启动中间件
 
 ```bash
 cd backend
 docker compose up -d
+# 启动 PostgreSQL:5432, Redis:6379, MinIO:9000
 ```
-
-这会启动三个服务：
-
-| 服务 | 端口 | 用途 |
-|------|------|------|
-| PostgreSQL 16 | 5432 | 主数据库 |
-| Redis 7 | 6379 | 缓存 + WebSocket Channel Layers |
-| MinIO | 9000 / 9001 | 文件存储 (S3) |
 
 ### 2. 启动后端
 
 ```bash
 cd backend
-
-# 安装 Python 依赖
 uv sync
-
-# 初始化数据库
 uv run python manage.py migrate
-
-# 启动 (Daphne ASGI — 支持 HTTP + WebSocket)
 uv run daphne -b 0.0.0.0 -p 8000 config.asgi:application
 ```
 
-后端启动后访问：
-- Swagger API 文档：http://localhost:8000/api/docs/
-- Django Admin：http://localhost:8000/admin/（需先 `createsuperuser`）
-
 ### 3. 启动前端
-
-打开**新终端**：
 
 ```bash
 cd frontend
@@ -99,102 +129,7 @@ pnpm install
 pnpm dev -p 5173
 ```
 
-访问 http://localhost:5173 开始使用。
-
-### 4. 使用流程
-
-1. 打开 http://localhost:5173 → 点击「注册」
-2. 创建账号后登录 → 进入仪表盘
-3. 点击「创建工作空间」
-4. 进入工作空间 → 「创建项目」→ 自动生成 6 列看板
-5. 「创建任务」→ 拖拽卡片 → 点击查看详情 → 评论/附件/编辑
-
----
-
-## API 端点概览
-
-```
-认证:
-  POST /api/auth/register/      注册
-  POST /api/auth/login/         登录
-  POST /api/auth/logout/        登出
-  GET  /api/auth/me/            当前用户
-  PUT  /api/auth/me/            更新资料
-  POST /api/auth/change-password/  修改密码
-
-工作空间:
-  GET  /api/workspaces/         我的工作空间
-  POST /api/workspaces/         创建工作空间
-  GET  /api/workspaces/{id}/    详情
-  PUT  /api/workspaces/{id}/    编辑
-  DELETE /api/workspaces/{id}/  删除
-  GET  /api/workspaces/{id}/members/  成员列表
-  POST /api/workspaces/{id}/members/  添加成员
-  PUT  /api/workspaces/{id}/members/{uid}/  修改角色
-  DELETE /api/workspaces/{id}/members/{uid}/  移除
-
-项目:
-  GET  /api/workspaces/{ws_id}/projects/  项目列表
-  POST /api/workspaces/{ws_id}/projects/  创建项目
-  GET  /api/projects/{id}/       详情
-  PUT  /api/projects/{id}/       编辑
-  DELETE /api/projects/{id}/     删除
-  POST /api/projects/{id}/archive/   归档
-  POST /api/projects/{id}/restore/   恢复
-
-任务:
-  GET  /api/projects/{proj_id}/tasks/     任务列表
-  POST /api/projects/{proj_id}/tasks/     创建任务
-  GET  /api/tasks/{id}/                   详情
-  PUT  /api/tasks/{id}/                   编辑
-  DELETE /api/tasks/{id}/                 删除
-  PATCH /api/tasks/{id}/status/           变更状态
-  POST /api/tasks/{id}/subtasks/          创建子任务
-  GET  /api/projects/{proj_id}/task-statuses/  状态列
-
-评论:
-  GET  /api/tasks/{task_id}/comments/  列表
-  POST /api/tasks/{task_id}/comments/  发表
-  PUT  /api/comments/{id}/             编辑
-  DELETE /api/comments/{id}/           删除
-
-附件:
-  GET  /api/tasks/{task_id}/attachments/  列表
-  POST /api/tasks/{task_id}/attachments/  上传
-  DELETE /api/attachments/{id}/           删除
-
-迭代:
-  GET  /api/projects/{proj_id}/iterations/  列表
-  POST /api/projects/{proj_id}/iterations/  创建
-  GET  /api/iterations/{id}/                详情
-  PUT  /api/iterations/{id}/                编辑
-  DELETE /api/iterations/{id}/              删除
-  POST /api/iterations/{id}/tasks/          添加任务
-
-模块:
-  GET  /api/projects/{proj_id}/modules/  列表
-  POST /api/projects/{proj_id}/modules/  创建
-  GET  /api/modules/{id}/                详情
-  PUT  /api/modules/{id}/                编辑
-  DELETE /api/modules/{id}/              删除
-
-统计:
-  GET  /api/projects/{id}/statistics/     项目统计
-  GET  /api/iterations/{id}/statistics/   迭代统计
-
-通知:
-  GET  /api/notifications/               列表
-  PATCH /api/notifications/{id}/read/    标记已读
-  POST /api/notifications/read-all/      全部已读
-
-操作日志:
-  GET  /api/tasks/{id}/activities/       任务日志
-  GET  /api/projects/{id}/activities/    项目日志
-
-WebSocket:
-  ws://host/ws/notifications/?token=<jwt>    实时通知
-  ws://host/ws/projects/{id}/?token=<jwt>    项目协作
-```
+访问 http://localhost:5173 开始使用
 
 ---
 
@@ -223,9 +158,6 @@ CORS_ALLOWED_ORIGINS=http://localhost:5173
 ---
 
 ## 常见问题
-
-**Q: 后端启动报数据库连接错误？**
-A: 设置 `USE_SQLITE=true` 使用 SQLite 开发，无需安装 PostgreSQL。
 
 **Q: 前端页面空白/数据不显示？**
 A: 确保后端已启动在 8000 端口，并检查浏览器控制台网络请求。
