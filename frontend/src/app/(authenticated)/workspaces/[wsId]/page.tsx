@@ -49,7 +49,8 @@ export default function WorkspacePage() {
 
   const createProject = useMutation({
     mutationFn: () => api.post(`/workspaces/${wsId}/projects/`, { name: projName, identifier: projIdt, description: projDesc }),
-    onSuccess: () => { invalidate(); setShowProject(false); setProjName(""); setProjIdt(""); setProjDesc(""); },
+    onSuccess: () => { invalidate(); setShowProject(false); setProjName(""); setProjIdt(""); setProjDesc(""); toast.success("项目创建成功"); },
+    onError: () => toast.error("创建失败，请检查所有必填字段"),
   });
 
   const updateProject = useMutation({
@@ -64,28 +65,28 @@ export default function WorkspacePage() {
 
   const addMember = useMutation({
     mutationFn: () => api.post(`/workspaces/${wsId}/members/`, { email: memberEmail, role: "member" }),
-    onSuccess: () => { invalidate(); setMemberEmail(""); },
+    onSuccess: () => { invalidate(); setMemberEmail(""); toast.success("成员已添加"); },
   });
 
   const changeMemberRole = useMutation({
     mutationFn: ({ uid, role }: { uid: string; role: string }) =>
       api.put(`/workspaces/${wsId}/members/${uid}/`, { role }),
-    onSuccess: () => invalidate(),
+    onSuccess: () => { invalidate(); toast.success("角色已修改"); },
   });
 
   const removeMember = useMutation({
     mutationFn: (uid: string) => api.delete(`/workspaces/${wsId}/members/${uid}/`),
-    onSuccess: () => invalidate(),
+    onSuccess: () => { invalidate(); toast.success("成员已移除"); },
   });
 
   const archiveProject = useMutation({
     mutationFn: (id: string) => api.post(`/projects/${id}/archive/`),
-    onSuccess: () => invalidate(),
+    onSuccess: () => { invalidate(); toast.success("项目已归档"); },
   });
 
   const restoreProject = useMutation({
     mutationFn: (id: string) => api.post(`/projects/${id}/restore/`),
-    onSuccess: () => invalidate(),
+    onSuccess: () => { invalidate(); toast.success("项目已恢复"); },
   });
 
   if (isLoading) return <div className="flex justify-center py-20"><Spinner /></div>;

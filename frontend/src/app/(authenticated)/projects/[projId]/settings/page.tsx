@@ -50,7 +50,10 @@ export default function SettingsPage() {
 
   const removeMember = useMutation({
     mutationFn: (uid: string) => api.delete(`/projects/${projId}/members/${uid}/`),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["project-members", projId] }); },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["project-members", projId] });
+      toast.success("成员已移除");
+    },
   });
 
   if (isLoading) return <div className="flex justify-center py-20"><Spinner /></div>;

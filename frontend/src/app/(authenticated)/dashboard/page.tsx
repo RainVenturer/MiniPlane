@@ -8,6 +8,7 @@ import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
 import Spinner from "@/components/ui/Spinner";
 import type { Workspace } from "@/types";
+import { toast } from "sonner";
 
 export default function DashboardPage() {
   const [showCreate, setShowCreate] = useState(false);
@@ -30,7 +31,9 @@ export default function DashboardPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["workspaces"] });
       setShowCreate(false); setName(""); setDesc("");
+      toast.success("工作空间创建成功");
     },
+    onError: () => toast.error("创建失败"),
   });
 
   const updateWs = useMutation({
@@ -38,12 +41,16 @@ export default function DashboardPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["workspaces"] });
       setShowEdit(false); setEditingWs(null);
+      toast.success("工作空间已更新");
     },
   });
 
   const deleteWs = useMutation({
     mutationFn: (id: string) => api.delete(`/workspaces/${id}/`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["workspaces"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["workspaces"] });
+      toast.success("工作空间已删除");
+    },
   });
 
   if (isLoading) return <div className="flex justify-center py-20"><Spinner /></div>;

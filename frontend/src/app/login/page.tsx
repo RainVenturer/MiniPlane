@@ -7,6 +7,7 @@ import { useAuthStore } from "@/stores/authStore";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import type { LoginResponse } from "@/types";
+import { toast } from "sonner";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -23,10 +24,13 @@ export default function LoginPage() {
     try {
       const { data } = await api.post<LoginResponse>("/auth/login/", { email, password });
       login(data.user, data.access, data.refresh);
+      toast.success(`欢迎回来，${data.user.name}`);
       router.push("/dashboard");
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setError(msg || "登录失败，请检查邮箱和密码");
+      const friendly = msg?.includes("邮箱或密码") ? "邮箱或密码错误，请重试" :
+                       msg?.includes("禁用") ? "账号已被禁用，请联系管理员" : (msg || "登录失败，请检查网络连接");
+      setError(friendly);
     } finally {
       setLoading(false);
     }

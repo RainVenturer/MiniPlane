@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useAuthStore } from "@/stores/authStore";
 import { useAppStore } from "@/stores/appStore";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const mainLinks = [
   { href: "/dashboard", label: "工作空间", icon: "⊞" },
@@ -67,7 +68,7 @@ export default function Sidebar() {
                 const refresh = localStorage.getItem("refresh_token");
                 if (refresh) m.default.post("/auth/logout/", { refresh }).catch(() => {});
               });
-              logout(); router.push("/login");
+              logout(); router.push("/login"); toast.success("已退出登录");
             }}
             className="text-muted hover:text-danger transition-colors text-sm"
             title="退出登录"

@@ -7,6 +7,7 @@ import { useAuthStore } from "@/stores/authStore";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import type { LoginResponse } from "@/types";
+import { toast } from "sonner";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
@@ -24,10 +25,13 @@ export default function RegisterPage() {
     try {
       const { data } = await api.post<LoginResponse>("/auth/register/", { email, name, password });
       login(data.user, data.access, data.refresh);
+      toast.success("注册成功！欢迎加入 MiniPlane");
       router.push("/dashboard");
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setError(msg || "注册失败");
+      const friendly = msg?.includes("已存在") ? "该邮箱已被注册，请直接登录" :
+                       msg?.includes("密码") ? "密码长度不能少于 6 位" : (msg || "注册失败，请稍后重试");
+      setError(friendly);
     } finally {
       setLoading(false);
     }
