@@ -55,11 +55,8 @@ class WorkspaceViewSet(viewsets.ModelViewSet):
         ).prefetch_related("members").distinct()
 
     def get_permissions(self):
-        if self.action in ("update", "partial_update", "destroy",
-                           "add_member", "change_role", "remove_member"):
+        if self.action in ("update", "partial_update", "destroy", "create", "add_member", "change_role", "remove_member"):
             return [IsAuthenticated(), IsWorkspaceAdmin()]
-        if self.action in ("members",):
-            return [IsAuthenticated(), IsWorkspaceMember()]
         return [IsAuthenticated()]
 
     def perform_create(self, serializer):

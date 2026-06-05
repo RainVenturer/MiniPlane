@@ -30,6 +30,8 @@ export default function KanbanPage() {
   const [iterationId, setIterationId] = useState("");
   const [moduleId, setModuleId] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterPriority, setFilterPriority] = useState("");
+  const [filterIteration, setFilterIteration] = useState("");
   const [showStatus, setShowStatus] = useState(false);
   const [statusName, setStatusName] = useState("");
   const [statusColor, setStatusColor] = useState("#6366f1");
@@ -67,10 +69,15 @@ export default function KanbanPage() {
   });
 
   const { data: tasksData, isLoading } = useQuery<{ results: Task[] }>({
-    queryKey: ["tasks", projId, searchQuery],
+    queryKey: ["tasks", projId, searchQuery, filterPriority, filterIteration],
     queryFn: async () => {
       const { data } = await api.get(`/projects/${projId}/tasks/`, {
-        params: { view: "kanban", page_size: 100, search: searchQuery || undefined },
+        params: {
+          view: "kanban", page_size: 100,
+          search: searchQuery || undefined,
+          priority: filterPriority || undefined,
+          iteration: filterIteration || undefined,
+        },
       });
       return data as { results: Task[] };
     },
@@ -125,13 +132,30 @@ export default function KanbanPage() {
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-6 gap-3">
-        <input
-          type="text"
-          placeholder="搜索任务..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="px-3.5 py-2 bg-surface-1 border border-border rounded-xl text-sm text-fg placeholder:text-muted focus:outline-none focus:border-accent w-64"
-        />
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            placeholder="搜索任务..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="px-3.5 py-2 bg-surface-1 border border-border rounded-xl text-sm text-fg placeholder:text-muted focus:outline-none focus:border-accent w-48"
+          />
+          <select value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)}
+            className="px-3 py-2 bg-surface-1 border border-border rounded-xl text-sm text-fg focus:outline-none focus:border-accent cursor-pointer">
+            <option value="">全部优先级</option>
+            <option value="urgent">紧急</option>
+            <option value="high">高</option>
+            <option value="medium">中</option>
+            <option value="low">低</option>
+          </select>
+          <select value={filterIteration} onChange={(e) => setFilterIteration(e.target.value)}
+            className="px-3 py-2 bg-surface-1 border border-border rounded-xl text-sm text-fg focus:outline-none focus:border-accent cursor-pointer">
+            <option value="">全部迭代</option>
+            {iterations?.map((i: Iteration) => (
+              <option key={i.id} value={i.id}>{i.name}</option>
+            ))}
+          </select>
+        </div>
         <Button onClick={() => setShowStatus(true)} size="sm" variant="ghost">+ 状态列</Button>
         <Button onClick={() => setShowCreate(true)} size="sm">+ 创建任务</Button>
       </div>

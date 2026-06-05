@@ -62,7 +62,13 @@ export default function Sidebar() {
             <p className="text-xs text-muted truncate">{user?.email}</p>
           </div>
           <button
-            onClick={() => { logout(); router.push("/login"); }}
+            onClick={() => {
+              import("@/lib/api").then((m) => {
+                const refresh = localStorage.getItem("refresh_token");
+                if (refresh) m.default.post("/auth/logout/", { refresh }).catch(() => {});
+              });
+              logout(); router.push("/login");
+            }}
             className="text-muted hover:text-danger transition-colors text-sm"
             title="退出登录"
           >

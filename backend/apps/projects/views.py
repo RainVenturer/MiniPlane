@@ -32,7 +32,13 @@ from .serializers import (
 class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.select_related("lead").prefetch_related("members")
     serializer_class = ProjectSerializer
-    permission_classes = [IsAuthenticated, IsProjectAdmin]
+    permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        if self.action in ("create", "update", "partial_update", "destroy", "archive", "restore",
+                           "add_member", "remove_member"):
+            return [IsAuthenticated(), IsProjectAdmin()]
+        return [IsAuthenticated()]
 
     lookup_field = "pk"
 
