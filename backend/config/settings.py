@@ -3,6 +3,7 @@ Django settings for MiniPlane project.
 """
 import os
 from pathlib import Path
+import hashlib
 from datetime import timedelta
 from dotenv import load_dotenv
 
@@ -194,6 +195,10 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,
     "AUTH_HEADER_TYPES": ("Bearer",),
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
+    "SIGNING_KEY": os.getenv(
+        "JWT_SIGNING_KEY",
+        hashlib.sha256(SECRET_KEY.encode("utf-8")).hexdigest(),
+    ),
 }
 
 # ── CORS ──────────────────────────────────────────────────────────────
