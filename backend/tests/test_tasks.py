@@ -146,10 +146,6 @@ class TestTaskStatusChange:
         }, format="json")
         assert resp.status_code == 400
 
-    @pytest.mark.xfail(
-        reason="当前权限模型允许任意项目成员修改任意任务，"
-               "缺少是否为任务负责人/创建者的对象级校验"
-    )
     def test_non_assignee_cannot_modify_task(self, user_client, task, task_in_progress):
         """普通成员不能修改他人任务（非负责人非管理员）"""
         resp = user_client.patch(f"/api/tasks/{task.id}/status/", {
@@ -157,16 +153,13 @@ class TestTaskStatusChange:
         }, format="json")
         assert resp.status_code == 403
 
-    @pytest.mark.xfail(
-        reason="当前权限模型允许任意项目成员修改任意任务，"
-               "缺少是否为任务负责人/创建者的对象级校验"
-    )
     def test_non_assignee_cannot_update_task(self, user_client, task):
         """普通成员不能更新他人任务的字段"""
         resp = user_client.patch(f"/api/tasks/{task.id}/", {
             "title": "被篡改的标题",
         }, format="json")
         assert resp.status_code == 403
+
 class TestSubtasks:
     """子任务"""
 
