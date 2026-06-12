@@ -12,11 +12,11 @@
 | 指标 | 数值 |
 |------|------|
 | 测试总数 | **294** |
-| 通过 | **288** |
-| 预期失败 (xfail) | **6** |
+| 通过 | **294** |
+| 预期失败 (xfail) | **0** |
 | 实际失败 | **0** |
-| 通过率 | **100%** (排除 xfail) |
-| 执行时间 | **109.6s** |
+| 通过率 | **100%** |
+| 执行时间 | **145s** |
 | 集成测试 | 158 (`tests/`) |
 | 单元测试 | 130 (`apps/*/tests/`) |
 
@@ -48,7 +48,7 @@
 
 | 测试类 | 文件 | 条数 | 内容 |
 |--------|------|------|------|
-| TestCreateProject | test_projects.py | 6 | 创建、缺字段、自动大写identifier、重复identifier(xfail) |
+| TestCreateProject | test_projects.py | 6 | 创建、缺字段、自动大写identifier、重复identifier返回400 |
 | TestListProjects | test_projects.py | 3 | 列表、筛选、非成员不可见 |
 | TestProjectDetail | test_projects.py | 5 | 详情、更新、删除、非成员拒绝 |
 | TestProjectMembers | test_projects.py | 2 | 添加成员、移除成员 |
@@ -69,7 +69,7 @@
 
 | 测试类 | 文件 | 条数 | 内容 |
 |--------|------|------|------|
-| TestTaskStatusChange | test_tasks.py | 5 | 状态变更、变更为已完成、无效状态拒绝、非负责人修改(xfail×2) |
+| TestTaskStatusChange | test_tasks.py | 5 | 状态变更、变更为已完成、无效状态拒绝、非负责人修改被拒绝 |
 | TestTaskActivities | test_tasks.py | 2 | 活动日志存在、状态变更后活动 |
 | 单元测试 | tasks/tests/ | — | TaskStatusChangeSerializer 跨项目状态拒绝、Activity+通知生成 |
 
@@ -132,8 +132,8 @@
 
 | 测试 | 预期 | 结果 |
 |------|------|------|
-| 修改他人任务状态 | 403 | ⚠️ xfail — 当前返回200 |
-| 修改他人任务字段 | 403 | ⚠️ xfail — 当前返回200 |
+| 修改他人任务状态 | 403 | ✅ 通过 — `IsTaskAssigneeOrProjectAdmin` 已生效 |
+| 修改他人任务字段 | 403 | ✅ 通过 — `IsTaskAssigneeOrProjectAdmin` 已生效 |
 
 #### 输入校验
 
@@ -277,36 +277,36 @@ backend/
 
 ## 九、已知问题清单
 
-| # | 严重度 | 描述 | 位置 | 状态 |
-|---|--------|------|------|------|
-| 1 | High | `/api/iterations/{id}/` 缺少 proj_id，get_queryset 返回空 | iterations/views.py | xfail |
-| 2 | Medium | 重复 identifier 只在 DB 层 500，serializer 未校验 | projects/serializers.py | xfail |
-| 3 | Medium | 普通成员可修改他人任务，缺少负责人级对象权限 | tasks/permissions.py | xfail |
-| 4 | Low | JWT HMAC key 29 bytes < 建议的 32 bytes (SHA256) | settings.py | warning |
+**无** — 所有已知 Bug 均已修复，0 xfail。
 
 ---
 
 ## 十、已修复问题（自 2026-06-10）
 
-| # | 描述 | 修复方式 |
-|---|------|---------|
-| 1 | 搜索功能 500 (`filters.py:29` models 未 import) | 已修复，搜索测试全部通过 |
-| 2 | MinIO bucket 未自动创建 | 测试环境使用 InMemoryStorage 绕过 |
-| 3 | APIRenderer 在测试中不生效 | conftest.py `pytest_configure()` 强制注入 |
+| # | 描述 | 提交 | 修复方式 |
+|---|------|------|---------|
+| 1 | 搜索功能 500 (`filters.py:29` models 未 import) | `b281e5b` | 补了 `import models` |
+| 2 | MinIO bucket 未自动创建 | `38892c7` | 添加 `minio-init` 服务 |
+| 3 | APIRenderer 在测试中不生效 | — | conftest.py 强制注入 |
+| 4 | 迭代路由缺少 proj_id | `a978e64` | 改为嵌套路由 `api/projects/{proj_id}/iterations/{id}/` |
+| 5 | identifier 重复返回 500 | `9930269` | serializer 添加唯一性校验 |
+| 6 | 缺少对象级权限 | `899baed` | 添加 `IsTaskAssigneeOrProjectAdmin` |
+| 7 | JWT key < 32 字节 | `052e3f9` | 添加 `SIGNING_KEY` |
+| 8 | load 测试 statistics 模块冲突 | `a9f2ecb` | 移除 statistics 依赖 |
 
 ---
 
 ## 十一、结果汇总
 
-| 类别 | 通过 | xfail | 总计 | 通过率 |
-|------|------|-------|------|--------|
-| 认证 (UC1) | 48 | 0 | 48 | 100% |
-| 工作空间 (UC2) | 42 | 0 | 42 | 100% |
-| 项目 (UC3) | 40 | 1 | 41 | 97.6% |
-| 任务 (UC4-6) | 80 | 2 | 82 | 97.6% |
-| 迭代 (UC8) | 22 | 3 | 25 | 88.0% |
-| 安全 (QS3/NF3) | 17 | 0 | 17 | 100% |
-| 性能 (NF1/QS1) | 11 | 0 | 11 | 100% |
-| 故障恢复 (QS2/QS7) | 35 | 0 | 35 | 100% |
-| 架构验证 (AD1-4) | 4 | 0 | 4 | 100% |
-| **总计** | **288** | **6** | **294** | **100%** |
+| 类别 | 通过 | 总计 | 通过率 |
+|------|------|------|--------|
+| 认证 (UC1) | 48 | 48 | 100% |
+| 工作空间 (UC2) | 42 | 42 | 100% |
+| 项目 (UC3) | 41 | 41 | 100% |
+| 任务 (UC4-6) | 82 | 82 | 100% |
+| 迭代 (UC8) | 25 | 25 | 100% |
+| 安全 (QS3/NF3) | 17 | 17 | 100% |
+| 性能 (NF1/QS1) | 11 | 11 | 100% |
+| 故障恢复 (QS2/QS7) | 35 | 35 | 100% |
+| 架构验证 (AD1-4) | 4 | 4 | 100% |
+| **总计** | **294** | **294** | **100%** |
