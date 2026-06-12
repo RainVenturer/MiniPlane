@@ -54,7 +54,7 @@ class TestCreateProject:
         assert resp.status_code == 400
 
     def test_create_project_duplicate_identifier(self, admin_client, workspace, project):
-        """重复 identifier — 应返回 400 友好错误"""
+        """重复 identifier 应返回 400"""
         resp = admin_client.post(f"/api/workspaces/{workspace.id}/projects/", {
             "name": "另一个项目",
             "identifier": project.identifier,

@@ -38,25 +38,26 @@ class TestIterationCRUD:
         assert resp.status_code == 200
         assert len(resp.json()["data"]) >= 1
 
-    def test_retrieve_iteration(self, admin_client, iteration):
+    def test_retrieve_iteration(self, admin_client, project, iteration):
         """查看迭代详情"""
         resp = admin_client.get(
-            f"/api/projects/{iteration.project_id}/iterations/{iteration.id}/"
+            f"/api/projects/{project.id}/iterations/{iteration.id}/"
         )
         assert resp.status_code == 200
 
-    def test_update_iteration(self, admin_client, iteration):
+    def test_update_iteration(self, admin_client, project, iteration):
         """编辑迭代"""
         resp = admin_client.patch(
-            f"/api/projects/{iteration.project_id}/iterations/{iteration.id}/", {
-                "description": "更新后的迭代描述",
-            }, format="json")
+            f"/api/projects/{project.id}/iterations/{iteration.id}/",
+            {"description": "更新后的迭代描述"},
+            format="json",
+        )
         assert resp.status_code == 200
 
-    def test_delete_iteration(self, admin_client, iteration):
+    def test_delete_iteration(self, admin_client, project, iteration):
         """删除迭代"""
         resp = admin_client.delete(
-            f"/api/projects/{iteration.project_id}/iterations/{iteration.id}/"
+            f"/api/projects/{project.id}/iterations/{iteration.id}/"
         )
         assert resp.status_code == 204
 

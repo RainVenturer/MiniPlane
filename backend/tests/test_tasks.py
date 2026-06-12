@@ -159,7 +159,6 @@ class TestTaskStatusChange:
             "title": "被篡改的标题",
         }, format="json")
         assert resp.status_code == 403
-
 class TestSubtasks:
     """子任务"""
 

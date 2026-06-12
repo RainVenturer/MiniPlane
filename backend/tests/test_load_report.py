@@ -15,6 +15,7 @@
 import time
 import random
 import json
+import statistics
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
@@ -307,30 +308,22 @@ class TestFormalLoadTest:
         errors = len(results) - success
         throughput = len(results) / wall_time if wall_time > 0 else 0
 
-        n = len(elapsed_times)
-        avg = sum(elapsed_times) / n if n else 0
-        if n >= 2:
-            variance = sum((x - avg) ** 2 for x in elapsed_times) / (n - 1)
-            std_dev = variance ** 0.5
-        else:
-            std_dev = 0
-
         return {
             "operation": operation,
             "label": label,
-            "requests": n,
+            "requests": len(results),
             "success": success,
             "errors": errors,
             "wall_time": wall_time,
             "throughput": throughput,
-            "avg": avg,
+            "avg": statistics.mean(elapsed_times) if elapsed_times else 0,
             "min": min(elapsed_times) if elapsed_times else 0,
             "max": max(elapsed_times) if elapsed_times else 0,
             "p50": _p(elapsed_times, 50),
             "p90": _p(elapsed_times, 90),
             "p95": _p(elapsed_times, 95),
             "p99": _p(elapsed_times, 99),
-            "std_dev": std_dev,
+            "std_dev": statistics.stdev(elapsed_times) if len(elapsed_times) >= 2 else 0,
         }
 
     # ── 摘要输出 ──────────────────────────────────────────────
