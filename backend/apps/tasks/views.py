@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema_view, extend_schema
 
-from apps.core.permissions import IsProjectMember
+from apps.core.permissions import IsProjectMember, IsTaskAssigneeOrProjectAdmin
 from apps.projects.models import Project
 from .models import Task, TaskStatus
 from .serializers import (
@@ -36,7 +36,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         "status", "assignee", "module", "iteration", "created_by",
     ).prefetch_related("subtasks", "comments")
     serializer_class = TaskSerializer
-    permission_classes = [IsAuthenticated, IsProjectMember]
+    permission_classes = [IsAuthenticated, IsProjectMember, IsTaskAssigneeOrProjectAdmin]
     filterset_class = TaskFilter
     search_fields = ["title", "description"]
     ordering_fields = ["created_at", "updated_at", "due_date", "priority", "order"]

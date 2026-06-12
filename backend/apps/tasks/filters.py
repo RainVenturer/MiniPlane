@@ -1,5 +1,6 @@
 # ── 任务筛选器 ───────────────────────────────────────────────────
 import django_filters
+from django.db import models
 from .models import Task
 
 
