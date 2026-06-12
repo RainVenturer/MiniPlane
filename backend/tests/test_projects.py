@@ -53,16 +53,12 @@ class TestCreateProject:
         }, format="json")
         assert resp.status_code == 400
 
-    @pytest.mark.xfail(
-        reason="BUG: 唯一约束仅在DB层触发(500), serializer未做唯一性校验"
-    )
     def test_create_project_duplicate_identifier(self, admin_client, workspace, project):
-        """重复 identifier — 触发 DB IntegrityError 而非 400"""
+        """重复 identifier — 应返回 400 友好错误"""
         resp = admin_client.post(f"/api/workspaces/{workspace.id}/projects/", {
             "name": "另一个项目",
             "identifier": project.identifier,
         }, format="json")
-        # 期望 400 (友好错误)，实际 500 (DB IntegrityError)
         assert resp.status_code == 400
 
     def test_non_member_cannot_create_project(self, extra_client, workspace):

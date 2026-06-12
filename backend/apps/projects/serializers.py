@@ -31,7 +31,13 @@ class ProjectCreateSerializer(ProjectSerializer):
     def validate_identifier(self, value):
         if not value.isalnum():
             raise serializers.ValidationError("标识符只能包含字母和数字")
-        return value.upper()
+        value = value.upper()
+        workspace_id = self.context.get("workspace_id")
+        if workspace_id and Project.objects.filter(
+            workspace_id=workspace_id, identifier=value,
+        ).exists():
+            raise serializers.ValidationError("该项目标识符在当前工作空间中已存在")
+        return value
 
     def create(self, validated_data):
         validated_data["workspace_id"] = self.context["workspace_id"]
