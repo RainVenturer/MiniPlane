@@ -61,8 +61,15 @@ urlpatterns = [
     # 附件 (独立路由 — 删除)
     path("api/attachments/", include("apps.attachments.urls")),
 
-    # 迭代 (独立路由 — 详情/编辑/删除)
-    path("api/iterations/", include("apps.iterations.urls")),
+    # 迭代 (嵌套路由 — 详情/编辑/删除)
+    path("api/projects/<uuid:proj_id>/iterations/<uuid:pk>/",
+         IterationViewSet.as_view({
+             "get": "retrieve", "put": "update",
+             "patch": "partial_update", "delete": "destroy",
+         }), name="iteration-detail"),
+    path("api/projects/<uuid:proj_id>/iterations/<uuid:pk>/tasks/",
+         IterationViewSet.as_view({"post": "add_tasks"}),
+         name="iteration-add-tasks"),
     # 迭代统计
     path("api/iterations/<uuid:pk>/statistics/",
          include("apps.statistics.iteration_urls")),

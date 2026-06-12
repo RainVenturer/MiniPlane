@@ -38,30 +38,26 @@ class TestIterationCRUD:
         assert resp.status_code == 200
         assert len(resp.json()["data"]) >= 1
 
-    @pytest.mark.xfail(
-        reason="BUG: /api/iterations/{id}/ 缺少 proj_id, get_queryset 返回空",
-    )
     def test_retrieve_iteration(self, admin_client, iteration):
-        """查看迭代详情 — 已知 BUG: 详情URL不含proj_id导致404"""
-        resp = admin_client.get(f"/api/iterations/{iteration.id}/")
+        """查看迭代详情"""
+        resp = admin_client.get(
+            f"/api/projects/{iteration.project_id}/iterations/{iteration.id}/"
+        )
         assert resp.status_code == 200
 
-    @pytest.mark.xfail(
-        reason="BUG: /api/iterations/{id}/ 缺少 proj_id",
-    )
     def test_update_iteration(self, admin_client, iteration):
-        """编辑迭代 — 已知BUG"""
-        resp = admin_client.patch(f"/api/iterations/{iteration.id}/", {
-            "description": "更新后的迭代描述",
-        }, format="json")
+        """编辑迭代"""
+        resp = admin_client.patch(
+            f"/api/projects/{iteration.project_id}/iterations/{iteration.id}/", {
+                "description": "更新后的迭代描述",
+            }, format="json")
         assert resp.status_code == 200
 
-    @pytest.mark.xfail(
-        reason="BUG: /api/iterations/{id}/ 缺少 proj_id",
-    )
     def test_delete_iteration(self, admin_client, iteration):
-        """删除迭代 — 已知BUG"""
-        resp = admin_client.delete(f"/api/iterations/{iteration.id}/")
+        """删除迭代"""
+        resp = admin_client.delete(
+            f"/api/projects/{iteration.project_id}/iterations/{iteration.id}/"
+        )
         assert resp.status_code == 204
 
     def test_create_iteration_invalid_dates(self, admin_client, project):
