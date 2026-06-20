@@ -43,13 +43,14 @@ class TaskViewSet(viewsets.ModelViewSet):
     ordering = ["order", "-created_at"]
 
     def get_permissions(self):
+        # 只读列表：与 modules、iterations 等子资源一致，仅需登录
+        if self.action in ("list", "statuses") and self.request.method == "GET":
+            return [IsAuthenticated()]
         # 状态变更（拖拽）：任何项目成员均可操作，不限于负责人/管理员
         if self.action == "change_status":
             return [IsAuthenticated(), IsProjectMember()]
-        # 状态列管理（GET/POST）：与 modules、iterations 等子资源一致
+        # 状态列管理（POST）：需项目成员权限
         if self.action == "statuses":
-            if self.request.method == "GET":
-                return [IsAuthenticated()]
             return [IsAuthenticated(), IsProjectMember()]
         return [IsAuthenticated(), IsProjectMember(), IsTaskAssigneeOrProjectAdmin()]
 
