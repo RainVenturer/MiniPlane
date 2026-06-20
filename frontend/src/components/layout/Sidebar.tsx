@@ -1,6 +1,7 @@
 "use client";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/stores/authStore";
 import { useAppStore } from "@/stores/appStore";
 import { cn } from "@/lib/utils";
@@ -17,6 +18,7 @@ export default function Sidebar() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const { sidebarOpen } = useAppStore();
+  const queryClient = useQueryClient();
 
   if (!sidebarOpen) return null;
 
@@ -68,7 +70,7 @@ export default function Sidebar() {
                 const refresh = localStorage.getItem("refresh_token");
                 if (refresh) m.default.post("/auth/logout/", { refresh }).catch(() => {});
               });
-              logout(); router.push("/login"); toast.success("已退出登录");
+              logout(); queryClient.clear(); router.push("/login"); toast.success("已退出登录");
             }}
             className="text-muted hover:text-danger transition-colors text-sm"
             title="退出登录"

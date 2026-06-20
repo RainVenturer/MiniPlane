@@ -119,10 +119,8 @@ CHANNEL_LAYERS = {
         "CONFIG": {
             "hosts": [{
                 "address": REDIS_URL,
-                "connection_kwargs": {
-                    "socket_connect_timeout": 5,
-                    "socket_timeout": 5,
-                },
+                "socket_connect_timeout": 5,
+                "socket_timeout": 5,
             }],
         },
     },

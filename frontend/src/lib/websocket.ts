@@ -8,8 +8,11 @@ class WSClient {
   private handlers: Map<string, Set<MessageHandler>> = new Map();
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private url = "";
+  private disconnected = false;
 
   connect(path: string, token: string) {
+    if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
+    this.disconnected = false;
     this.url = `${WS_BASE}${path}?token=${token}`;
     this.socket = new WebSocket(this.url);
 
@@ -28,6 +31,7 @@ class WSClient {
     };
 
     this.socket.onclose = () => {
+      if (this.disconnected) return;
       this.reconnectTimer = setTimeout(() => this.connect(path, token), 3000);
     };
   }
@@ -47,6 +51,7 @@ class WSClient {
   }
 
   disconnect() {
+    this.disconnected = true;
     if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
     this.socket?.close();
     this.socket = null;
