@@ -42,6 +42,12 @@ class TaskViewSet(viewsets.ModelViewSet):
     ordering_fields = ["created_at", "updated_at", "due_date", "priority", "order"]
     ordering = ["order", "-created_at"]
 
+    def get_permissions(self):
+        # 状态变更（拖拽）：任何项目成员均可操作，不限于负责人/管理员
+        if self.action == "change_status":
+            return [IsAuthenticated(), IsProjectMember()]
+        return [IsAuthenticated(), IsProjectMember(), IsTaskAssigneeOrProjectAdmin()]
+
     def get_serializer_class(self):
         if self.action == "list":
             return TaskListSerializer
