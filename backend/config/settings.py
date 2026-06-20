@@ -106,8 +106,11 @@ CACHES = {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
         "LOCATION": f"{REDIS_URL}",
         "OPTIONS": {
-            "socket_connect_timeout": 5,
-            "socket_timeout": 5,
+            "socket_connect_timeout": 10,
+            "socket_timeout": 10,
+            "retry_on_timeout": True,
+            "max_connections": 50,
+            "health_check_interval": 30,
         },
     }
 }
@@ -119,8 +122,11 @@ CHANNEL_LAYERS = {
         "CONFIG": {
             "hosts": [{
                 "address": REDIS_URL,
-                "socket_connect_timeout": 5,
-                "socket_timeout": 5,
+                "socket_connect_timeout": 10,
+                "socket_timeout": 10,
+                "retry_on_timeout": True,
+                "max_connections": 100,
+                "health_check_interval": 30,
             }],
         },
     },
