@@ -39,7 +39,7 @@ export default function ModulesPage() {
     queryKey: ["tasks", projId, "list"],
     queryFn: async () => {
       const { data } = await api.get(`/projects/${projId}/tasks/`, { params: { page_size: 200 } });
-      return (data as { results?: Task[] }).results || [];
+      return (data as { results?: Task[] }).results || (Array.isArray(data) ? data as Task[] : []);
     },
   });
 

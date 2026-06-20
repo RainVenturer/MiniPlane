@@ -14,17 +14,17 @@ export default function ListViewPage() {
   const { projId } = useParams<{ projId: string }>();
   const router = useRouter();
 
-  const { data: tasksData, isLoading } = useQuery<{ results: Task[] }>({
+  const { data: tasksData, isLoading } = useQuery<Task[]>({
     queryKey: ["tasks", projId, "list"],
     queryFn: async () => {
       const { data } = await api.get(`/projects/${projId}/tasks/`, {
         params: { view: "list", page_size: 100 },
       });
-      return data as { results: Task[] };
+      return (data as { results?: Task[] }).results || (Array.isArray(data) ? (data as Task[]) : []);
     },
   });
 
-  const tasks = tasksData?.results || [];
+  const tasks = tasksData || [];
 
   if (isLoading) return <div className="flex justify-center py-20"><Spinner /></div>;
 

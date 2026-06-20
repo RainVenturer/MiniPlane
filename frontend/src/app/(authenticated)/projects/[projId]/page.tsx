@@ -68,7 +68,7 @@ export default function KanbanPage() {
     },
   });
 
-  const { data: tasksData, isLoading } = useQuery<{ results: Task[] }>({
+  const { data: tasksData, isLoading } = useQuery<Task[]>({
     queryKey: ["tasks", projId, searchQuery, filterPriority, filterIteration],
     queryFn: async () => {
       const { data } = await api.get(`/projects/${projId}/tasks/`, {
@@ -79,11 +79,12 @@ export default function KanbanPage() {
           iteration: filterIteration || undefined,
         },
       });
-      return data as { results: Task[] };
+      // API 解包后 data 已是数组，兼容分页格式
+      return (data as { results?: Task[] }).results || (Array.isArray(data) ? (data as Task[]) : []);
     },
   });
 
-  const tasks = (tasksData as { results: Task[] })?.results || [];
+  const tasks = tasksData || [];
 
   const createTask = useMutation({
     mutationFn: () => api.post(`/projects/${projId}/tasks/`, {
@@ -163,7 +164,7 @@ export default function KanbanPage() {
       {/* Kanban board */}
       <div className="flex-1 flex gap-4 overflow-x-auto pb-4">
         {statuses?.map((col: TaskStatus) => {
-          const colTasks = tasks.filter((t) => t.status === col.id);
+          const colTasks = tasks.filter((t: Task) => t.status === col.id);
           return (
             <div
               key={col.id}
