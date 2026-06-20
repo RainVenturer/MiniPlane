@@ -81,6 +81,14 @@ api.interceptors.response.use(
         isRefreshing = false;
       }
     }
+    // 403 无权限 — 跳转主页（仅页面数据 GET 请求）
+    if (error.response?.status === 403 && typeof window !== "undefined"
+        && (originalRequest.method?.toLowerCase() === "get")
+        && !window.location.pathname.startsWith("/login")
+        && !window.location.pathname.startsWith("/register")) {
+      window.location.href = "/dashboard";
+      return Promise.reject(error);
+    }
     return Promise.reject(error);
   },
 );
