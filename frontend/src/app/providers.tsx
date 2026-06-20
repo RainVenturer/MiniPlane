@@ -7,6 +7,18 @@ import { useAuthStore } from "@/stores/authStore";
 function AuthHydrator({ children }: { children: React.ReactNode }) {
   const hydrate = useAuthStore((s) => s.hydrate);
   useEffect(() => { hydrate(); }, [hydrate]);
+
+  // 跨标签页同步：另一标签登录/退出时本标签自动刷新
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "access_token" && e.newValue !== e.oldValue) {
+        window.location.reload();
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
   return <>{children}</>;
 }
 
