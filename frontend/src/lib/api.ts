@@ -65,6 +65,8 @@ api.interceptors.response.use(
       try {
         const { data } = await axios.post(`${API_BASE}/token/refresh/`, { refresh });
         localStorage.setItem("access_token", data.access);
+        // ROTATE_REFRESH_TOKENS=True — refresh token 也会轮换，必须保存新版
+        if (data.refresh) localStorage.setItem("refresh_token", data.refresh);
         processQueue(null, data.access);
         if (originalRequest.headers) {
           originalRequest.headers.Authorization = `Bearer ${data.access}`;

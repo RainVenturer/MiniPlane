@@ -5,7 +5,6 @@ import { useAppStore } from "@/stores/appStore";
 import { useNotificationStore } from "@/stores/notificationStore";
 import api from "@/lib/api";
 import { wsClient } from "@/lib/websocket";
-import { auth } from "@/lib/auth";
 import { timeAgo } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import type { Notification } from "@/types";
@@ -27,9 +26,7 @@ export default function TopBar() {
 
   // WebSocket for real-time notifications
   useEffect(() => {
-    const token = auth.getAccessToken();
-    if (!token) return;
-    wsClient.connect("/notifications/", token);
+    wsClient.connect("/notifications/");
     const unsub = wsClient.on("*", (msg) => {
       const n = msg as Notification;
       addNotification(n);

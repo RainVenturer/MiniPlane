@@ -94,7 +94,7 @@ export default function TaskDetailPage() {
 
   // ── Mutations ──────────────────────────────────────────────
   const updateTask = useMutation({
-    mutationFn: (payload: Record<string, unknown>) => api.put(`/tasks/${taskId}/`, payload),
+    mutationFn: (payload: Record<string, unknown>) => api.patch(`/tasks/${taskId}/`, payload),
     onSuccess: () => { invalidate(); setEditing(false); toast.success("任务已更新"); },
     onError: () => toast.error("更新失败"),
   });
@@ -170,7 +170,7 @@ export default function TaskDetailPage() {
     });
     // Also handle assignee separately if changed
     if (assigneeEmail && assigneeEmail !== task?.assignee_name) {
-      api.put(`/tasks/${taskId}/`, { assignee: assigneeEmail }).catch(() => {});
+      api.patch(`/tasks/${taskId}/`, { assignee: assigneeEmail }).catch(() => {});
     }
   };
 

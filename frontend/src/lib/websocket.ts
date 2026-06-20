@@ -7,14 +7,32 @@ class WSClient {
   private socket: WebSocket | null = null;
   private handlers: Map<string, Set<MessageHandler>> = new Map();
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-  private url = "";
+  private path = "";
   private disconnected = false;
+  private retryCount = 0;
+  private maxRetries = 10;
 
-  connect(path: string, token: string) {
+  connect(path: string, _token?: string) {
     if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
     this.disconnected = false;
-    this.url = `${WS_BASE}${path}?token=${token}`;
-    this.socket = new WebSocket(this.url);
+    this.retryCount = 0;
+    this.path = path;
+    this._doConnect();
+  }
+
+  private _doConnect() {
+    // 每次重连从 localStorage 读取最新 token
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("access_token")
+        : null;
+    if (!token) {
+      this.disconnected = true;
+      return;
+    }
+
+    const url = `${WS_BASE}${this.path}?token=${token}`;
+    this.socket = new WebSocket(url);
 
     this.socket.onmessage = (event) => {
       try {
@@ -32,7 +50,14 @@ class WSClient {
 
     this.socket.onclose = () => {
       if (this.disconnected) return;
-      this.reconnectTimer = setTimeout(() => this.connect(path, token), 3000);
+      this.retryCount++;
+      if (this.retryCount > this.maxRetries) {
+        this.disconnected = true;
+        return;
+      }
+      // 指数退避：3s, 6s, 12s, 24s... 最大 60s
+      const delay = Math.min(3000 * Math.pow(2, this.retryCount - 1), 60000);
+      this.reconnectTimer = setTimeout(() => this._doConnect(), delay);
     };
   }
 
