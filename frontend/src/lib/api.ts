@@ -12,7 +12,7 @@ const api = axios.create({
 // ── 请求拦截器：附加 JWT ────────────────────────────────────────
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   if (typeof window !== "undefined") {
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -56,38 +56,28 @@ api.interceptors.response.use(
       }
       originalRequest._retry = true;
       isRefreshing = true;
-      const refresh = localStorage.getItem("refresh_token");
+      const refresh = sessionStorage.getItem("refresh_token");
       if (!refresh) {
-        localStorage.clear();
+        sessionStorage.clear();
         if (typeof window !== "undefined") window.location.href = "/login";
         return Promise.reject(error);
       }
       try {
         const { data } = await axios.post(`${API_BASE}/token/refresh/`, { refresh });
-        localStorage.setItem("access_token", data.access);
-        // ROTATE_REFRESH_TOKENS=True — refresh token 也会轮换，必须保存新版
-        if (data.refresh) localStorage.setItem("refresh_token", data.refresh);
+        sessionStorage.setItem("access_token", data.access);
         processQueue(null, data.access);
         if (originalRequest.headers) {
           originalRequest.headers.Authorization = `Bearer ${data.access}`;
         }
         return api(originalRequest);
       } catch {
-        localStorage.clear();
+        sessionStorage.clear();
         processQueue(error, null);
         if (typeof window !== "undefined") window.location.href = "/login";
         return Promise.reject(error);
       } finally {
         isRefreshing = false;
       }
-    }
-    // 403 无权限 — 跳转主页（仅页面数据 GET 请求）
-    if (error.response?.status === 403 && typeof window !== "undefined"
-        && (originalRequest.method?.toLowerCase() === "get")
-        && !window.location.pathname.startsWith("/login")
-        && !window.location.pathname.startsWith("/register")) {
-      window.location.href = "/dashboard";
-      return Promise.reject(error);
     }
     return Promise.reject(error);
   },
