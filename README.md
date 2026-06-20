@@ -4,16 +4,16 @@
 
 ## 技术栈
 
-| 层 | 技术 |
-|---|------|
-| 前端 | Next.js 16 (React 19) + TypeScript + TailwindCSS 4 |
-| 后端 | Django 5 + Django REST Framework |
-| 数据库 | PostgreSQL 16（开发可用 SQLite） |
-| 缓存 | Redis 7 |
-| 文件存储 | MinIO (S3 兼容) |
-| 消息队列 | Celery + Redis |
-| 实时通信 | Django Channels + WebSocket |
-| 包管理 | 后端 uv / 前端 pnpm |
+| 层       | 技术                                               |
+| -------- | -------------------------------------------------- |
+| 前端     | Next.js 16 (React 19) + TypeScript + TailwindCSS 4 |
+| 后端     | Django 5 + Django REST Framework                   |
+| 数据库   | PostgreSQL 16（开发可用 SQLite）                   |
+| 缓存     | Redis 7                                            |
+| 文件存储 | MinIO (S3 兼容)                                    |
+| 消息队列 | Celery + Redis                                     |
+| 实时通信 | Django Channels + WebSocket                        |
+| 包管理   | 后端 uv / 前端 pnpm                                |
 
 ## 项目结构
 
@@ -48,8 +48,8 @@ SoftwareArchitecture/
 
 ### 前置要求
 
-| 工具 | 版本 | 检查命令 |
-|------|------|----------|
+| 工具           | 版本 | 检查命令           |
+| -------------- | ---- | ------------------ |
 | Docker Desktop | 最新 | `docker --version` |
 
 ### 启动
@@ -61,14 +61,14 @@ docker compose up -d
 
 首次启动会自动构建后端和前端镜像（约 3-5 分钟）。
 
-| 服务 | 端口 | 说明 |
-|------|------|------|
-| frontend | 5173 | Next.js 前端 |
-| backend | 8000 | Django + Daphne (HTTP + WebSocket) |
-| db | 5432 | PostgreSQL 16 |
-| redis | 6379 | 缓存 + 队列 + Channel Layers |
-| minio | 9000 / 9001 | 对象存储 (API / Console) |
-| celery-worker | — | 异步任务 |
+| 服务          | 端口        | 说明                               |
+| ------------- | ----------- | ---------------------------------- |
+| frontend      | 5173        | Next.js 前端                       |
+| backend       | 8000        | Django + Daphne (HTTP + WebSocket) |
+| db            | 5432        | PostgreSQL 16                      |
+| redis         | 6379        | 缓存 + 队列 + Channel Layers       |
+| minio         | 9000 / 9001 | 对象存储 (API / Console)           |
+| celery-worker | —           | 异步任务                           |
 
 ### 初始化数据库
 
@@ -96,13 +96,13 @@ docker compose down
 
 ### 前置要求
 
-| 工具 | 版本 | 检查命令 |
-|------|------|----------|
-| Docker Desktop | 最新 | `docker --version` |
-| Python | ≥ 3.12 | `python --version` |
-| uv | 最新 | `uv --version` |
-| Node.js | ≥ 18 | `node --version` |
-| pnpm | 最新 | `pnpm --version` |
+| 工具           | 版本   | 检查命令           |
+| -------------- | ------ | ------------------ |
+| Docker Desktop | 最新   | `docker --version` |
+| Python         | ≥ 3.12 | `python --version` |
+| uv             | 最新   | `uv --version`     |
+| Node.js        | ≥ 18   | `node --version`   |
+| pnpm           | 最新   | `pnpm --version`   |
 
 ### 1. 启动中间件
 
