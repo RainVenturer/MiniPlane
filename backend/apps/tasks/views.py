@@ -46,6 +46,11 @@ class TaskViewSet(viewsets.ModelViewSet):
         # 状态变更（拖拽）：任何项目成员均可操作，不限于负责人/管理员
         if self.action == "change_status":
             return [IsAuthenticated(), IsProjectMember()]
+        # 状态列管理（GET/POST）：与 modules、iterations 等子资源一致
+        if self.action == "statuses":
+            if self.request.method == "GET":
+                return [IsAuthenticated()]
+            return [IsAuthenticated(), IsProjectMember()]
         return [IsAuthenticated(), IsProjectMember(), IsTaskAssigneeOrProjectAdmin()]
 
     def get_serializer_class(self):
